@@ -1,0 +1,21 @@
+FROM alpine:3.18 
+RUN apk update \
+    && apk upgrade \
+    && apk add --no-cache \
+        build-base \
+        clang16 \
+        openmp-dev \
+        cmake \
+        ninja \
+        git \
+        curl \
+        perl
+
+WORKDIR /usr/src/barretenberg/cpp
+
+COPY ./srs_db/download_ignition.sh /tmp
+RUN (cd /tmp && ./download_ignition.sh 0)
+COPY . .
+# Build everything to ensure everything builds. All tests will be run from the result of this build.
+RUN cmake --preset default && cmake --build --preset default --target pippenger_bench
+CMD (cd build && ./bin/pippenger_bench)
